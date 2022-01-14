@@ -93,19 +93,19 @@ fn main() {
   .manage(DirEntries(Default::default()))
   .manage(SubDirectoriesCount(Default::default()))
   .invoke_handler(tauri::generate_handler![
-      change_drive,
-      scan_dir,
-      // change_dir,
-      count_sub_dir,
-    ])
-    .on_page_load(|window, _payload| {
-      let payload = BootPayload { drives: scan_drive() };
-      window
-        .emit("boot", Some(payload))
-        .expect("failed to emit event");
-    })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    change_drive,
+    scan_dir,
+    // change_dir,
+    count_sub_dir,
+  ])
+  .on_page_load(|window, _payload| {
+    let payload = BootPayload { drives: scan_drive() };
+    window
+      .emit("boot", Some(payload))
+      .expect("failed to emit event");
+  })
+  .run(tauri::generate_context!())
+  .expect("error while running tauri application");
 }
 
 fn scan_drive() -> Vec<String> {
