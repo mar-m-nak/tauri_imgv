@@ -1,0 +1,14 @@
+{
+  "name": "tauri_imgv",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "live-server dist --port=5555 --no-browser"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.0.0-beta.10"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.0.0-beta.8",
+    "live-server": "^1.2.1"
+  }
+}

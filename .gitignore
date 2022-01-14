@@ -1,0 +1,46 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Compiled binary addons (http://nodejs.org/api/addons.html)
+build/Release
+
+# Dependency directories
+node_modules/
+node_modules
+
+# Optional npm cache directory
+.npm
+
+# Optional yarn cache directory
+.yarn
+
+/.vs
+.DS_Store
+.Thumbs.db
+*.sublime*
+.idea
+debug.log
+package-lock.json
+.vscode/settings.json
+*/.vscode/
+proptest-regressions/
+TODO.md
+
+# Tauri output
+/bundle.json
+/config.json
+
+# rust compiled folders
+target
+
+# lock for libs
+/Cargo.lock
+/tooling/bench/tests/Cargo.lock
+/yarn.lock
+
+src-tauri/src/index_maker/index.rs
+src-tauri/src/index_maker/mainjs.rs

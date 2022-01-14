@@ -1,0 +1,35 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  height: 100vh;
+}
+.container {
+  background-color: lightslategrey;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 45vh 4fr;
+  grid-template-columns: 4fr 45vh;
+  grid-gap: 0;
+}
+
+info {
+  background-color: red;
+  padding: 0.5em;
+  margin: 4px;
+}
+
+imageview {
+  background-color: lightgray;
+  margin: 4px;
+  margin-left: 0;
+}
+
+list {
+  background-color: green;
+  padding: 0.5em;
+  margin: 4px;
+  margin-top: 0;
+  grid-area: 2/1/2/3;
+}
