@@ -2,8 +2,10 @@ const InvokeErr = -1;
 
 class RequestToRust {
   #invoke;
+  #subDirCount; // Number of subdirectories in the current entry list. (use it later.)
   constructor() {
     this.#invoke = window.__TAURI__.invoke;
+    this.#subDirCount = 0;
   }
   /**
    * Request drive change
@@ -19,21 +21,45 @@ class RequestToRust {
       }).catch(() => 0);
     return newDrvNum;
   }
+  /**
+   * Request directory scan
+   * @returns {Array} Directory entries
+   */
+   async scanDir() {
+    const dirs =
+      await this.#invoke('scan_dir').then((_dirs) => {
+        this.#invoke('count_sub_dir').then((_cnt) => {
+          this.#subDirCount = _cnt;
+        })
+        return _dirs;
+      }).catch(() => []);
+    return dirs;
+  }
+  /**
+   * Returns the number of subdirectories
+   * @returns {number} Subdirectory count
+   */
+  get subDirCount() {
+    return this.#subDirCount;
+  }
 }
 
-class UserControl {
+class UserOperation {
   #reqRust;
   #drives = [];
-  #activeDriveNum = 0;
+  #activeDriveNum = 0; // Key of #drives
+  #dirEntries = [];
   constructor() {
     this.#reqRust = new RequestToRust();
-    this.drives = [];
+    this.#drives = [];
     this.#activeDriveNum = 0;
+    this.#dirEntries = [];
   }
   async init(payload) {
     this.#drives = payload.drives;
     document.querySelector('info').innerHTML = this.#drives;
     this.#activeDriveNum = await this.#reqRust.changeDrive(this.#activeDriveNum);
+    this.#dirEntries = await this.#reqRust.scanDir();
   }
   /**
    * Select drive
@@ -46,6 +72,8 @@ class UserControl {
     n = (n > maxNum) ? 0 : n;
     this.#activeDriveNum = await this.#reqRust.changeDrive(n);
     console.log("Drv: " + this.#activeDriveNum);
+    // Check the switching of the entry list
+    document.querySelector('list').innerHTML = await this.#reqRust.scanDir();
   }
 }
 
@@ -58,8 +86,8 @@ window.__TAURI__.event.listen('boot', async (ev) => {
  * Main : key operation
  */
 const main = (payload) => {
-  const ctrl = new UserControl();
-  ctrl.init(payload);
+  const op = new UserOperation();
+  op.init(payload);
   // Hook key down
   document.addEventListener('keydown', (e) => {
     // Ignore IME inputting
@@ -68,10 +96,10 @@ const main = (payload) => {
     }
     switch (e.key) {
       case 'ArrowLeft':
-        ctrl.selectDrive(-1);
+        op.selectDrive(-1);
         break;
       case 'ArrowRight':
-        ctrl.selectDrive(1);
+        op.selectDrive(1);
         break;
       default:
         break;
