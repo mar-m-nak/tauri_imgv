@@ -1,4 +1,4 @@
-// const InvokeErr = -1;
+const InvokeErr = -1;
 
 class RequestToRust {
   #invoke;
@@ -20,6 +20,23 @@ class RequestToRust {
         return _newDrvNum;
       }).catch(() => 0);
     return newDrvNum;
+  }
+  /**
+   * Request directory change
+   * @param {number} entryNum Request directory number
+   * @returns {number} Changed directory number or InvokeErr
+   */
+    async changeDir(entryNum) {
+    const newEntryNum =
+      await this.#invoke('change_dir', {
+        chgNum: entryNum
+      }).then(() => {
+        return entryNum;
+      }).catch((e) => {
+        console.log("ChangeDir Error: " + e);
+        return InvokeErr;
+      });
+    return newEntryNum;
   }
   /**
    * Request directory scan
@@ -112,6 +129,28 @@ class UserOperation {
     this.#dirEntries = await this.#reqRust.scanDir();
     this.selectEntry(0);
   }
+  /**
+   * Enter the focused directory
+   * @returns void
+   */
+    async enterDir() {
+    let res = await this.#reqRust.changeDir(this.#activeEntryNum);
+    if (res == InvokeErr) {
+      return;
+    }
+    this.#activeEntryNum = 0;
+    this.#dirEntries = await this.#reqRust.scanDir();
+    this.selectEntry(0);
+    // this.#lv.linkList(this.#dirEntries, this.#reqRust.subDirCount);
+  }
+  /**
+   * Return to the parent directory in one shot
+   */
+   goBackParentDir() {
+    this.selectEntry(0);
+    this.#activeEntryNum = 0;
+    this.enterDir();
+  }
 }
 
 // Boot event ( from Rust .on_page_load() )
@@ -143,6 +182,14 @@ const main = (payload) => {
         break;
       case 'ArrowDown':
         op.selectEntry(1);
+        break;
+      case 'Enter':
+        op.enterDir();
+        e.preventDefault();
+        break;
+      case 'Backspace':
+        op.goBackParentDir();
+        e.preventDefault();
         break;
       default:
         break;

@@ -19,6 +19,9 @@ struct BootPayload {
   drives: Vec<String>
 }
 
+const CHANGE_DIR_ERROR: i8 = -1;
+const CHANGE_DIR_WARNING: i8 = -2;
+
 #[derive(Debug)]
 struct DriveEntries(Mutex<Vec<String>>);
 struct ActiveDrive(Mutex<usize>);
@@ -42,6 +45,25 @@ fn change_drive(
   *active_drive.0.lock().unwrap() = new_num;
   *active_path.0.lock().unwrap() = Path::new(dbg!(&v_drives[new_num])).to_path_buf();
   new_num
+}
+
+#[tauri::command]
+fn change_dir(
+  chg_num: usize,
+  dir_entries: State<DirEntries>,
+  active_path: State<ActivePath>,
+) -> Result<(), i8> {
+  let v_dirs = &*dir_entries.0.lock().unwrap();
+  let target_dir = if let Some(_dir) = v_dirs.get(chg_num) {
+    &v_dirs[chg_num]
+  } else {
+    return Err(CHANGE_DIR_ERROR); // Number is out of range of v_dirs
+  };
+  if !target_dir.is_dir() {
+    return Err(CHANGE_DIR_WARNING); // Not a directory
+  }
+  *active_path.0.lock().unwrap() = target_dir.to_path_buf();
+  Ok(())
 }
 
 #[tauri::command]
@@ -97,7 +119,7 @@ fn main() {
   .invoke_handler(tauri::generate_handler![
     change_drive,
     scan_dir,
-    // change_dir,
+    change_dir,
     count_sub_dir,
   ])
   .register_uri_scheme_protocol("reqimg", move |app, request| {
