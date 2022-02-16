@@ -1,4 +1,4 @@
-const InvokeErr = -1;
+// const InvokeErr = -1;
 
 class RequestToRust {
   #invoke;
@@ -49,17 +49,54 @@ class UserOperation {
   #drives = [];
   #activeDriveNum = 0; // Key of #drives
   #dirEntries = [];
+  #activeEntryNum = 0; // Key of #dirEntries
+  #lastRequestNum = -1;
   constructor() {
     this.#reqRust = new RequestToRust();
-    this.#drives = [];
-    this.#activeDriveNum = 0;
-    this.#dirEntries = [];
   }
   async init(payload) {
     this.#drives = payload.drives;
     document.querySelector('info').innerHTML = this.#drives;
     this.#activeDriveNum = await this.#reqRust.changeDrive(this.#activeDriveNum);
     this.#dirEntries = await this.#reqRust.scanDir();
+  }
+  /**
+   * Select entry item
+   * @param {number} inc Increment (or decrement) current (file/dir) entry
+   */
+   selectEntry(inc) {
+    let oldNum = this.#activeEntryNum;
+    let n = this.#activeEntryNum += parseInt(inc);
+    let maxNum = this.#dirEntries.length - 1;
+    n = (n < 0) ? 0 : n;
+    n = (n > maxNum) ? maxNum : n;
+    this.#activeEntryNum = (inc == 0) ? 0 : n;
+    if (this.#activeEntryNum != oldNum || inc == 0) {
+      // TODO: Make it a list view later
+      let isDir = (this.#activeEntryNum < this.#reqRust.subDirCount);
+      let color = isDir ? "#FFAA00" : "#FFFFFF";
+      let filename = this.#dirEntries[this.#activeEntryNum];
+      let item = this.#activeEntryNum + " : " + filename;
+      document.querySelector('list').innerHTML = '<font color="' + color + '">' + item + "</font>";
+      // Start image request
+      let img = new Image();
+      img.addEventListener("error", () => {
+        // Error : Suppress broken link icons
+        document.getElementById('img_preview').src = "";
+      }, false);
+      img.addEventListener("load", (ev) => {
+        // Success : Image switching
+        // Display when the last request number and the response URL number match.
+        let resUri = new URL(ev.path[0].currentSrc);
+        let resNum = resUri.searchParams.get('n');
+        if (this.#lastRequestNum == resNum) {
+          document.getElementById('img_preview').src = img.src;
+        }
+      }, false);
+      // Images are requested by n number, cc is just for cache control.
+      this.#lastRequestNum = n;
+      img.src = 'https://reqimg./?n=' + n + "&cc=" + filename;
+    }
   }
   /**
    * Select drive
@@ -72,8 +109,8 @@ class UserOperation {
     n = (n > maxNum) ? 0 : n;
     this.#activeDriveNum = await this.#reqRust.changeDrive(n);
     console.log("Drv: " + this.#activeDriveNum);
-    // Check the switching of the entry list
-    document.querySelector('list').innerHTML = await this.#reqRust.scanDir();
+    this.#dirEntries = await this.#reqRust.scanDir();
+    this.selectEntry(0);
   }
 }
 
@@ -100,6 +137,12 @@ const main = (payload) => {
         break;
       case 'ArrowRight':
         op.selectDrive(1);
+        break;
+      case 'ArrowUp':
+        op.selectEntry(-1);
+        break;
+      case 'ArrowDown':
+        op.selectEntry(1);
         break;
       default:
         break;
