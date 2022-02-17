@@ -175,14 +175,13 @@ const main = (payload) => {
         break;
       case 'Enter':
         op.enterDir();
-        e.preventDefault();
         break;
       case 'Backspace':
         op.goBackParentDir();
-        e.preventDefault();
         break;
       default:
-        break;
+        return;
     }
+    e.preventDefault();
   });
 }
