@@ -1,4 +1,12 @@
 const InvokeErr = -1;
+const Img = new Image();
+Img.addEventListener("error", () => {
+  // Error : Suppress broken link icon.
+  document.getElementById('img_preview').src = "";
+}, false);
+Img.addEventListener("load", () => {
+  document.getElementById('img_preview').src = Img.src;
+}, false);
 
 class RequestToRust {
   #invoke;
@@ -67,7 +75,6 @@ class UserOperation {
   #activeDriveNum = 0; // Key of #drives
   #dirEntries = [];
   #activeEntryNum = 0; // Key of #dirEntries
-  #lastRequestNum = -1;
   constructor() {
     this.#reqRust = new RequestToRust();
   }
@@ -81,39 +88,22 @@ class UserOperation {
    * Select entry item
    * @param {number} inc Increment (or decrement) current (file/dir) entry
    */
-   selectEntry(inc) {
-    let oldNum = this.#activeEntryNum;
-    let n = this.#activeEntryNum += parseInt(inc);
+  selectEntry(inc) {
     let maxNum = this.#dirEntries.length - 1;
-    n = (n < 0) ? 0 : n;
-    n = (n > maxNum) ? maxNum : n;
-    this.#activeEntryNum = (inc == 0) ? 0 : n;
-    if (this.#activeEntryNum != oldNum || inc == 0) {
+    let n = (inc == 0) ? 0 : this.#activeEntryNum + parseInt(inc);
+    n = Math.max(n, 0);
+    n = Math.min(n, maxNum);
+    if (n != this.#activeEntryNum || n == 0) {
       // TODO: Make it a list view later
-      let isDir = (this.#activeEntryNum < this.#reqRust.subDirCount);
+      let isDir = (n < this.#reqRust.subDirCount);
       let color = isDir ? "#FFAA00" : "#FFFFFF";
-      let filename = this.#dirEntries[this.#activeEntryNum];
-      let item = this.#activeEntryNum + " : " + filename;
+      let filename = this.#dirEntries[n];
+      let item = n + " : " + filename;
       document.querySelector('list').innerHTML = '<font color="' + color + '">' + item + "</font>";
-      // Start image request
-      let img = new Image();
-      img.addEventListener("error", () => {
-        // Error : Suppress broken link icons
-        document.getElementById('img_preview').src = "";
-      }, false);
-      img.addEventListener("load", (ev) => {
-        // Success : Image switching
-        // Display when the last request number and the response URL number match.
-        let resUri = new URL(ev.path[0].currentSrc);
-        let resNum = resUri.searchParams.get('n');
-        if (this.#lastRequestNum == resNum) {
-          document.getElementById('img_preview').src = img.src;
-        }
-      }, false);
-      // Images are requested by n number, cc is just for cache control.
-      this.#lastRequestNum = n;
-      img.src = 'https://reqimg./?n=' + n + "&cc=" + filename;
+      // Images are requested by number n, cc is just for cache control.
+      Img.src = 'https://reqimg./?n=' + n + "&cc=" + filename;
     }
+    this.#activeEntryNum = n;
   }
   /**
    * Select drive
