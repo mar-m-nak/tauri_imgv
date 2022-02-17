@@ -34,7 +34,7 @@ class RequestToRust {
    * @param {number} entryNum Request directory number
    * @returns {number} Changed directory number or InvokeErr
    */
-    async changeDir(entryNum) {
+  async changeDir(entryNum) {
     const newEntryNum =
       await this.#invoke('change_dir', {
         chgNum: entryNum
@@ -50,7 +50,7 @@ class RequestToRust {
    * Request directory scan
    * @returns {Array} Directory entries
    */
-   async scanDir() {
+  async scanDir() {
     const dirs =
       await this.#invoke('scan_dir').then((_dirs) => {
         this.#invoke('count_sub_dir').then((_cnt) => {
@@ -123,7 +123,7 @@ class UserOperation {
    * Enter the focused directory
    * @returns void
    */
-    async enterDir() {
+  async enterDir() {
     let res = await this.#reqRust.changeDir(this.#activeEntryNum);
     if (res == InvokeErr) {
       return;
@@ -136,7 +136,7 @@ class UserOperation {
   /**
    * Return to the parent directory in one shot
    */
-   goBackParentDir() {
+  goBackParentDir() {
     this.selectEntry(0);
     this.#activeEntryNum = 0;
     this.enterDir();
