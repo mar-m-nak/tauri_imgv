@@ -123,7 +123,7 @@ fn main() {
     count_sub_dir,
   ])
   .register_uri_scheme_protocol("reqimg", move |app, request| {
-    let res_not_img = ResponseBuilder::new().status(200).body(Vec::new());
+    let res_not_img = ResponseBuilder::new().status(404).body(Vec::new());
     if request.method() != "GET" { return res_not_img; }
     let uri = request.uri();
     let start_pos = match uri.find("?n=") {
