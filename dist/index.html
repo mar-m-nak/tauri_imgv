@@ -7,8 +7,27 @@
 
 <body>
   <div class="container">
-    <info>Drive list</info>
+    <info>
+      <div id="drives"></div>
+      <div id="select_path"></div>
+    </info>
     <imageview><img id="img_preview" src=""></imageview>
-    <list>Directories and files</list>
+    <list>
+      <div id="listview"></div>
+    </list>
   </div>
 </body>
+
+<!--
+  TODO: It doesn't work well when using the template tag
+  Child elements are not retrieved with .cloneNode(true) in js
+    only when doing a 'Release build'. Works the same as false.
+
+  <template id="tpl_listview"><div class="lv_row"></div></template>
+-->
+<!--
+  If it is not a template tag, even child elements will be acquired correctly.
+-->
+<div id="tpl_listview"><div class="lv_row"></div></div>
+
+</html>
