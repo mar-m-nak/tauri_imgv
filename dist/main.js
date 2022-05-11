@@ -21,13 +21,9 @@ class RequestToRust {
    * @returns {number} Changed drive number
    */
   async changeDrive(drvNum) {
-    const newDrvNum =
-      await this.#invoke('change_drive', {
-        chgNum: drvNum
-      }).then((_newDrvNum) => {
-        return _newDrvNum;
-      }).catch(() => 0);
-    return newDrvNum;
+    return await this.#invoke('change_drive', {chgNum: drvNum})
+      .then((_newDrvNum) => {return _newDrvNum})
+      .catch(() => {return 0})
   }
   /**
    * Request directory change
@@ -35,30 +31,25 @@ class RequestToRust {
    * @returns {number} Changed directory number or InvokeErr
    */
   async changeDir(entryNum) {
-    const newEntryNum =
-      await this.#invoke('change_dir', {
-        chgNum: entryNum
-      }).then(() => {
-        return entryNum;
-      }).catch((e) => {
-        console.log("ChangeDir Error: " + e);
-        return InvokeErr;
-      });
-    return newEntryNum;
+    return await this.#invoke('change_dir', {chgNum: entryNum})
+      .then(() => {return entryNum})
+      .catch((e) => {
+        console.log("ChangeDir Error: " + e)
+        return InvokeErr
+      })
   }
   /**
    * Request directory scan
    * @returns {Array} Directory entries
    */
   async scanDir() {
-    const dirs =
-      await this.#invoke('scan_dir').then(async (_dirs) => {
-        await this.#invoke('count_sub_dir').then((_cnt) => {
-          this.#subDirCount = _cnt;
-        })
+    return await this.#invoke('scan_dir')
+      .then(async (_dirs) => {await this.#invoke('count_sub_dir')
+        .then((_cnt) => this.#subDirCount = _cnt)
+        .catch(() => this.#subDirCount = 0)
         return _dirs;
-      }).catch(() => []);
-    return dirs;
+      })
+      .catch(() => {return []})
   }
   /**
    * Returns the number of subdirectories
@@ -81,8 +72,10 @@ class UserOperation {
   }
   async init(payload) {
     this.#drives = payload.drives;
-    this.#activeDriveNum = await this.#reqRust.changeDrive(this.#activeDriveNum);
-    this.#dirEntries = await this.#reqRust.scanDir();
+    await this.#reqRust.changeDrive(this.#activeDriveNum)
+      .then((_newDriveNum) => this.#activeDriveNum = _newDriveNum)
+    await this.#reqRust.scanDir()
+      .then((_newEntries) => this.#dirEntries = _newEntries)
     // Display drives and highlight the active drive
     this.#displayDrives();
     this.#HighlightActiveDrive();
@@ -98,7 +91,7 @@ class UserOperation {
     for (const d in this.#drives) {
       if (Object.hasOwnProperty.call(this.#drives, d)) {
         const letter = this.#drives[d].replace('\\', '');
-        html = html + '<span id="drv' + d + '">' + letter + '</span>';
+        html = html + `<span id="drv${d}">${letter}</span>`;
       }
     }
     document.querySelector('#drives').innerHTML = html;
@@ -108,9 +101,9 @@ class UserOperation {
    */
   #HighlightActiveDrive() {
     for (const d in this.#drives) {
-      document.getElementById('drv' + d).classList.remove('active');
+      document.getElementById(`drv${d}`).classList.remove('active');
     }
-    document.getElementById('drv' + this.#activeDriveNum).classList.add('active');
+    document.getElementById(`drv${this.#activeDriveNum}`).classList.add('active');
   }
   /**
    * Select entry item
@@ -125,13 +118,13 @@ class UserOperation {
       let isDir = (n < this.#reqRust.subDirCount);
       let filename = this.#dirEntries[n];
       // Show information
-      let item = 'ENTRY: ' + n + ' .. ';
-      item = item + (isDir ? 'DIRECTORY': 'FILE') + "<br>" + filename;
+      let item = `ENTRY: ${n} .. `;
+      item = item + (isDir ? 'DIRECTORY': 'FILE') + '<br>' + filename;
       document.querySelector('#select_path').innerHTML = item;
       // Select a row in the list view
       this.#lv.selectRow(n, this.#activeEntryNum);
       // Images are requested by number n, cc is just for cache control.
-      Img.src = 'https://reqimg./?n=' + n + "&cc=" + filename;
+      Img.src = `https://reqimg./?n=${n}&cc=${filename}`;
     }
     this.#activeEntryNum = n;
   }
@@ -144,10 +137,11 @@ class UserOperation {
     let maxNum = this.#drives.length - 1;
     n = (n < 0) ? maxNum : n;
     n = (n > maxNum) ? 0 : n;
-    this.#activeDriveNum = await this.#reqRust.changeDrive(n);
+    await this.#reqRust.changeDrive(n)
+      .then((_newDriveNum) => this.#activeDriveNum = _newDriveNum);
+    await this.#reqRust.scanDir()
+      .then((_newEntries) => this.#dirEntries = _newEntries);
     this.#HighlightActiveDrive();
-    console.log("Drv: " + this.#activeDriveNum);
-    this.#dirEntries = await this.#reqRust.scanDir();
     this.selectEntry(0);
     this.#lv.linkList(this.#dirEntries, this.#reqRust.subDirCount);
   }
@@ -175,9 +169,6 @@ class UserOperation {
   }
 }
 
-/**
- * List View
- */
 class listview {
   #baseElement; // '#listview';
   #list; // array
