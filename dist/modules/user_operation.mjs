@@ -12,11 +12,13 @@ class UserOperation {
   #img = new Image();
   constructor() {
     this.#reqRust = new RequestToRust();
+    // Add Image event listener
     this.#img.addEventListener("error", () => {
       // Error : Suppress broken link icon.
       document.getElementById('img_preview').src = "";
     }, false);
     this.#img.addEventListener("load", () => {
+      // Success : Disp into preview area
       document.getElementById('img_preview').src = this.#img.src;
     }, false);
   }
