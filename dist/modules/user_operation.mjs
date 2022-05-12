@@ -30,7 +30,7 @@ class UserOperation {
       .then((_newEntries) => this.#dirEntries = _newEntries)
     // Display drives and highlight the active drive
     this.#displayDrives();
-    this.#HighlightActiveDrive();
+    this.#highlightActiveDrive();
     // Initialize the list view
     this.#lv = new ListView('#listview', 'tpl_listview');
     this.#lv.linkList(this.#dirEntries, this.#reqRust.subDirCount);
@@ -51,7 +51,7 @@ class UserOperation {
   /**
    * Add "active" class to currently active drive
    */
-  #HighlightActiveDrive() {
+  #highlightActiveDrive() {
     for (const d in this.#drives) {
       document.getElementById(`drv${d}`).classList.remove('active');
     }
@@ -93,7 +93,7 @@ class UserOperation {
       .then((_newDriveNum) => this.#activeDriveNum = _newDriveNum);
     await this.#reqRust.scanDir()
       .then((_newEntries) => this.#dirEntries = _newEntries);
-    this.#HighlightActiveDrive();
+    this.#highlightActiveDrive();
     this.selectEntry(0);
     this.#lv.linkList(this.#dirEntries, this.#reqRust.subDirCount);
   }
