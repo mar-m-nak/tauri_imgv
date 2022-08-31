@@ -45,3 +45,4 @@ target
 src-tauri/src/index_maker/index.rs
 src-tauri/src/index_maker/mainjs.rs
 dist/main copy.js
+src-tauri/Cargo.lock
