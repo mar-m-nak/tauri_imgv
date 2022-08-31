@@ -1,8 +1,9 @@
 import { UserOperation } from './modules/user_operation.mjs';
 
-// Boot event ( from Rust .on_page_load() )
-window.__TAURI__.event.listen('boot', async (ev) => {
-  main(ev.payload);
+document.addEventListener("DOMContentLoaded", function () {
+  window.__TAURI__.invoke('scan_drive')
+  .then((payload) => main(payload))
+  .catch(() => console.log("エラーだなあ"));
 });
 
 /**

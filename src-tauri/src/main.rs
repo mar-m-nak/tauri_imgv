@@ -117,6 +117,7 @@ fn main() {
   .manage(DirEntries(Default::default()))
   .manage(SubDirectoriesCount(Default::default()))
   .invoke_handler(tauri::generate_handler![
+    scan_drive,
     change_drive,
     scan_dir,
     change_dir,
@@ -161,16 +162,11 @@ fn main() {
     };
     local_img
   })
-  .on_page_load(|window, _payload| {
-    let payload = BootPayload { drives: scan_drive() };
-    window
-      .emit("boot", Some(payload))
-      .expect("failed to emit event");
-  })
   .run(tauri::generate_context!())
   .expect("error while running tauri application");
 }
 
+#[tauri::command]
 fn scan_drive() -> Vec<String> {
   let mut drives: Vec<String> = Vec::new();
   for a in 0..26 + b'A' {

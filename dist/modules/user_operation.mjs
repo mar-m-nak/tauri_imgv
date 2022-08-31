@@ -23,7 +23,7 @@ class UserOperation {
     }, false);
   }
   async init(payload) {
-    this.#drives = payload.drives;
+    this.#drives = payload;
     await this.#reqRust.changeDrive(this.#activeDriveNum)
       .then((_newDriveNum) => this.#activeDriveNum = _newDriveNum)
     await this.#reqRust.scanDir()
@@ -39,6 +39,8 @@ class UserOperation {
    * Take list of drives and displays them in the HTML
    */
   #displayDrives() {
+    console.log(this.#drives);
+
     let html = '';
     for (const d in this.#drives) {
       if (Object.hasOwnProperty.call(this.#drives, d)) {
@@ -52,6 +54,7 @@ class UserOperation {
    * Add "active" class to currently active drive
    */
   #highlightActiveDrive() {
+    console.log(this.#drives);
     for (const d in this.#drives) {
       document.getElementById(`drv${d}`).classList.remove('active');
     }
